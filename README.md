@@ -19,7 +19,9 @@ venv\Scripts\activate
 git clone https://github.com/pannet1/oc_chain.git 
 pip install -r oc-trade\requirements.txt 
 ```
+
 edit oc-trade\oc_trade\strikes\<script>.yaml 
+```
 base_name: NIFTY
 base_script: NFO:NIFTY22DECFUT
 sample: 18000
