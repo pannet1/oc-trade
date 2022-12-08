@@ -34,7 +34,7 @@ totp: ABCDEFGHIJKLMNO9VERVQIO45ESDFDFASD
 # Run 
 ensure that the venv is activated
 copy the `enctoken` from kite web \
-paste it to the `bypass.tok` file \
+paste it to the `bypass.tok` file 
 ```
 cd oc-trade\oc_trade 
 uvicorn main:app --reload
