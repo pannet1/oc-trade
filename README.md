@@ -4,10 +4,10 @@ git \
 
 # Setup
 
-it is recommended that you clone the repos in your virtualenv \
+it is recommended that you clone the repos in your virtualenv `py39` for example \
 ```
-venv\Scripts\activate 
-cd venv
+py39\Scripts\activate 
+cd py39
 git clone https://github.com/pannet1/oc_chain.git 
 pip install -r oc-trade\requirements.txt 
 ```
@@ -37,6 +37,6 @@ totp: ABCDEFGHIJKLMNO9VERVQIO45ESDFDFASD
 * copy the `enctoken` from kite web cookies from browser
 * paste it to the `bypass.tok` file  under the `confid` dir you created before 
 ```
-cd oc-trade\oc_trade 
+cd py39\oc-trade\oc_trade 
 uvicorn main:app --reload
 ```
