@@ -3,14 +3,6 @@ git \
 ^python3.9 
 
 # Setup
-in the `cred` folder two level above the `oc-trade` repos ... \
-update credential file `bypass.yaml` with your credentials \
-
-```
-userid: AB1234
-password: Secret
-totp: ABCDEFGHIJKLMNO9VERVQIO45ESDFDFASD
-```
 
 it is recommended that you clone the repos in your virtualenv \
 ```
@@ -31,10 +23,19 @@ opt_exch: NFO
 ```
 addsub refers to the the distance between strike price. here i skipped `NIFTY` minor strikeprices. 
 
+in the `cred` folder two level above the `oc-trade` repos ... \
+update credential file `bypass.yaml` with your credentials \
+
+```
+userid: AB1234
+password: Secret
+totp: ABCDEFGHIJKLMNO9VERVQIO45ESDFDFASD
+```
 # Run 
 ensure that the venv is activated
 copy the `enctoken` from kite web \
 paste it to the `bypass.tok` file \
 ```
 cd oc-trade\oc_trade 
+uvicorn main:app --reload
 ```
