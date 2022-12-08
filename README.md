@@ -34,7 +34,7 @@ totp: ABCDEFGHIJKLMNO9VERVQIO45ESDFDFASD
 ```
 # Run 
 * ensure that the venv is activated
-* copy the `enctoken` from kite web
+* copy the `enctoken` from kite web cookies from browser
 * paste it to the `bypass.tok` file  under the `confid` dir you created before 
 ```
 cd oc-trade\oc_trade 
