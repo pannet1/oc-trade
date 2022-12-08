@@ -35,7 +35,11 @@ try:
         dct_tkns = {}
         logging.info('token file modified today')
         with open(tok_file, 'r') as tf:
-            enctoken = tf.read()
+            enctoken = (
+                tf.read().decode('utf-8').strip()
+                if isinstance(tf.read(), bytes)
+                else tf.read().strip()
+            )
         if enctoken:
             dct_tkns['enctoken'] = enctoken
             dct_tkns['userid'] = lst_credential.get('userid')
