@@ -35,7 +35,8 @@ totp: ABCDEFGHIJKLMNO9VERVQIO45ESDFDFASD
 # Run 
 * ensure that the venv is activated
 * copy the `enctoken` from kite web cookies from browser
-* paste it to the `bypass.tok` file  under the `confid` dir you created before 
+* paste it to the `bypass.tok` file  under the `confid` dir you created before  
+* if the enctoken is empty, a new token is generated and reused throughout the day
 ```
 cd py39\oc-trade\oc_trade 
 uvicorn main:app --reload
