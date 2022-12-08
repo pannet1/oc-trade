@@ -2,7 +2,7 @@
 git \
 python3.9 
 
-#Setup
+= Setup =
 it is recommended that you clone the repos in your venv\
 venv\Scripts\activate\
 git clone https://github.com/pannet1/oc_chain.git\
