@@ -4,14 +4,13 @@ git \
 
 # Setup
 in the `cred` folder two level above the `oc-trade` repos ... \
-update credential file bypass.yaml with your credentials \
+update credential file `bypass.yaml` with your credentials \
 
 ```
 userid: AB1234
 password: Secret
 totp: ABCDEFGHIJKLMNO9VERVQIO45ESDFDFASD
 ```
-copy `enctoken` from browser to `bypass.tok` file from browser cookies 
 
 it is recommended that you clone the repos in your virtualenv \
 ```
@@ -30,11 +29,12 @@ expiry: 22D08
 abv_atm: 5
 opt_exch: NFO
 ```
-addsub refers to the the distance between strike price. here i skipped `NIFTY` minor strikeprices. \
+addsub refers to the the distance between strike price. here i skipped `NIFTY` minor strikeprices. 
 
-#Run
-copy the enctoken from kite web \
-paste it to the bypass.tok file \
-cd oc-trade\oc_trade \
-
-
+# Run 
+ensure that the venv is activated
+copy the `enctoken` from kite web \
+paste it to the `bypass.tok` file \
+```
+cd oc-trade\oc_trade 
+```
