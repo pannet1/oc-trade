@@ -11,6 +11,7 @@ from omspy_brokers.bypass import Bypass
 from connection_manager import ConnectionManager
 from oc_builder import Oc_builder
 import pandas as pd
+import uvicorn
 
 import json
 import asyncio
@@ -368,3 +369,6 @@ async def tradebook(request: Request):
     ctx = {"request": request, "title": inspect.stack()[0][3],
            "data": df.to_html()}
     return tmp.TemplateResponse("table.html", ctx)
+
+if __name__ == '__main__':
+    uvicorn.run(app, host="0.0.0.0", port=8000)
