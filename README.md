@@ -2,13 +2,13 @@
 git \
 python3.9 
 
-= Setup =
-it is recommended that you clone the repos in your venv\
-venv\Scripts\activate\
-git clone https://github.com/pannet1/oc_chain.git\
-cd oc-trade\
-pip install -r requirements.txt\
-cd oc-trade\oc_trade\strikes\
+# Setup
+it is recommended that you clone the repos in your venv \
+venv\Scripts\activate \
+git clone https://github.com/pannet1/oc_chain.git \
+cd oc-trade \
+pip install -r requirements.txt \
+cd oc-trade\oc_trade\strikes \
 
 update credential file bypass.yaml with your credentials\
 edit <script>.yaml\
