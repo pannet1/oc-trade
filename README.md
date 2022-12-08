@@ -1,6 +1,6 @@
-# Dependencies \
+# Dependencies 
 git \
-python3.9 \
+python3.9 
 
 #Setup
 it is recommended that you clone the repos in your venv\
