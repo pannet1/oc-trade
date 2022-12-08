@@ -1,18 +1,25 @@
 # Dependencies 
 git \
-python3.9 
+^python3.9 
 
 # Setup
-it is recommended that you clone the repos in your venv \
-venv\Scripts\activate \
-git clone https://github.com/pannet1/oc_chain.git \
-cd oc-trade \
-pip install -r requirements.txt \
-cd oc-trade\oc_trade\strikes \
+in the `cred` folder two level above the `oc-trade` repos ... \
+update credential file bypass.yaml with your credentials \
 
-update credential file bypass.yaml with your credentials\
-edit <script>.yaml\
 ```
+userid: AB1234
+password: Secret
+totp: ABCDEFGHIJKLMNO9VERVQIO45ESDFDFASD
+```
+update `enctoken` to bypass.tok file from browser cookies 
+
+it is recommended that you clone the repos in your virtualenv \
+```
+venv\Scripts\activate 
+git clone https://github.com/pannet1/oc_chain.git 
+pip install -r oc-trade\requirements.txt 
+```
+edit oc-trade\oc_trade\strikes\<script>.yaml 
 base_name: NIFTY
 base_script: NFO:NIFTY22DECFUT
 sample: 18000
