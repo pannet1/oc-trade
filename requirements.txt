@@ -1,9 +1,11 @@
 wheel
 pydantic
 pandas
-omspy
 git+https://github.com/pannet1/omspy-brokers.git
 git+https://github.com/pannet1/toolkit.git
 kiteconnect
 git+https://github.com/pannet1/kiteext.git
 git+https://github.com/osparamatrix/ks-orderapi-python.git
+python-multipart
+uvicorn[standard]
+fastapi
