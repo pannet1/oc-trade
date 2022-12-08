@@ -11,7 +11,7 @@ userid: AB1234
 password: Secret
 totp: ABCDEFGHIJKLMNO9VERVQIO45ESDFDFASD
 ```
-update `enctoken` to bypass.tok file from browser cookies 
+copy `enctoken` from browser to `bypass.tok` file from browser cookies 
 
 it is recommended that you clone the repos in your virtualenv \
 ```
