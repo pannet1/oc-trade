@@ -25,7 +25,7 @@ opt_exch: NFO
 `addsub` refers to the the distance between strike price. here i skipped `NIFTY` minor strikeprices. 
 
 in the `cred` folder two level above the `oc-trade` repos ... \
-update `bypass.yaml` with your credentials \
+update `bypass.yaml` with your credentials 
 
 ```
 userid: AB1234
