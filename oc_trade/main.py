@@ -2,7 +2,7 @@ from toolkit.fileutils import Fileutils
 from toolkit.utilities import Utilities
 from toolkit.logger import Logger
 from datetime import datetime as dt
-from typing import List, Optional
+from typing import List, Dict, Optional
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, Form
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -20,7 +20,7 @@ from copy import deepcopy
 import inspect
 
 # points to add/sub to ltp for limit orders
-buff = -2
+buff = 2
 
 # toolkit modules
 u = Utilities()
@@ -31,7 +31,7 @@ logging = Logger(20, 'app.log')
 try:
     # init broker object
     tok_file = './../../../confid/bypass.tok'
-    lst_credential = f.get_lst_fm_yml('../../../confid/bypass.yaml')
+    lst_credential = f.get_lst_fm_yml('../../../confid/arun.yaml')
     if f.is_file_not_2day(tok_file) is False:
         dct_tkns = {}
         logging.info('token file modified today')
@@ -109,7 +109,7 @@ def get_quotes():
             if option_type == "PUT"
         ]
     except Exception as b:
-        logging.warning(f"exception {b}")
+        logging.debug(f"exception {b}")
     else:
         return row
 
@@ -162,14 +162,14 @@ def get_orders():
 
 def get_positions():
     pos = bypass.positions
-    day = {}
+    data = {}
     if any(pos):
         for d in range(len(pos)):
-            day[pos[d]['tradingsymbol']] = pos[d]
-    return day
+            data[pos[d]['symbol']] = pos[d]
+    return data
 
 
-def modify_orders(lst, side, quotes):
+def modify_orders(lst: List, dirtn: int, quotes: Dict):
     try:
         book = get_orders()
         if any(book):
@@ -183,8 +183,8 @@ def modify_orders(lst, side, quotes):
                 elif status == 'WAITING':
                     logging.info(f'{book[o]["order_id"]} is {status}')
                 elif status == 'OPEN' or status == 'PENDING':
-                    ltp = get_ltp_fm_chain(book[o]['tradingsymbol'], quotes)
-                    ltp += (buff * side)
+                    ltp = get_ltp_fm_chain(book[o]['symbol'], quotes)
+                    ltp += (buff * dirtn)
                     logging.info(f'modifying {status} {o} {ltp}')
                     bypass.order_modify(
                         price=ltp, order_id=book[o]['order_id'])
@@ -203,14 +203,14 @@ def do_orders(quotes):
         return 1
     elif buy_pipe:
         for o in buy_pipe:
-            ltp = get_ltp_fm_chain(o['tradingsymbol'], quotes)
+            ltp = get_ltp_fm_chain(o['symbol'], quotes)
             o['price'] = ltp + (1*buff)
             order_id = order_place(o)
             if order_id:
                 BUY_OPEN.append(order_id)
                 logging.info(f'buy order {order_id} placed')
             else:
-                logging.warn('buy order failed')
+                logging.warning('buy order failed')
             buy_pipe.pop()
         return 2
     elif SELL_OPEN:
@@ -219,14 +219,14 @@ def do_orders(quotes):
         return -1
     elif sell_pipe:
         for o in sell_pipe:
-            ltp = get_ltp_fm_chain(o['tradingsymbol'], quotes)
+            ltp = get_ltp_fm_chain(o['symbol'], quotes)
             o['price'] = ltp - (1*buff)
             order_id = order_place(o)
             if order_id:
                 SELL_OPEN.append(order_id)
                 logging.info(f'sell order {order_id} placed')
             else:
-                logging.warn(f'sell order {o} failed')
+                logging.warning(f'sell order {o} failed')
             sell_pipe.pop()
         return -2
 
@@ -258,25 +258,26 @@ async def post_orders(
         if len(chk) > 0 and int(inp) > 0:
             pos = get_positions()
             for sym in chk:
-                if sym in pos[0]:
+                print(f'for {sym}')
+                if sym in pos:
                     o = {}
                     o['exchange'] = pos[sym]['exchange']
                     o['order_type'] = 'LIMIT'
                     o['product'] = pos[sym]['product']
                     o['quantity'] = abs(pos[sym]['quantity'])
                     c = deepcopy(o)
-                    o['tradingsymbol'] = pos[sym]['tradingsymbol']
+                    o['symbol'] = pos[sym]['symbol']
                     mv_by = int(inp) if do == 'up' else int(inp) * -1
                     logging.info(f'mv_by  {mv_by}')
-                    new_sym = upordn(pos[sym]['tradingsymbol'], mv_by)
-                    c['tradingsymbol'] = new_sym
-                    c['transaction_type'] = pos[sym]['transaction_type']
-                    if pos[sym]['transaction_type'] == 'SELL':
-                        o['transaction_type'] = 'BUY'
+                    new_sym = upordn(pos[sym]['symbol'], mv_by)
+                    c['symbol'] = new_sym
+                    c['side'] = pos[sym]['side']
+                    if pos[sym]['side'] == 'SELL':
+                        o['side'] = 'BUY'
                         buy_pipe.append(o)
                         sell_pipe.append(c)
                     else:
-                        o['transaction_type'] = 'SELL'
+                        o['side'] = 'SELL'
                         sell_pipe.append(o)
                         buy_pipe.append(c)
 
@@ -285,11 +286,11 @@ async def post_orders(
             if quantity != "":
                 o = {}
                 o['exchange'] = dct_build['opt_exch']
-                o['transaction_type'] = odir[k]
+                o['side'] = odir[k]
                 o['order_type'] = 'LIMIT'
                 o['product'] = 'MIS'
                 o['quantity'] = quantity
-                o['tradingsymbol'] = tsym[k]
+                o['symbol'] = tsym[k]
                 if odir[k] == 'BUY':
                     buy_pipe.append(o)
                 else:

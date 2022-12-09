@@ -1,0 +1,1 @@
+{"positions": {}, "quotes": {}, "time": {"slept": 0.620427, "tsym": "NFO:NIFTY22DECFUT", "atm": 18700, "ltp": 18720.15}}

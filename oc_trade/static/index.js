@@ -88,7 +88,7 @@ const get_pos = (obj) => {
   Object.keys(obj).forEach(function(pos) { 
     const tsym = obj[pos]
     try {
-    const elmTsym = document.getElementById(tsym.tradingsymbol)
+    const elmTsym = document.getElementById(tsym.symbol)
     const tr = elmTsym.parentElement
     const ltp = elmTsym.innerHTML
 
@@ -100,14 +100,14 @@ const get_pos = (obj) => {
       pnl = tsym.pnl
     }
 
-    if (tsym.tradingsymbol.slice(-2) == 'CE') {
+    if (tsym.symbol.slice(-2) == 'CE') {
       elmQty = tr.getElementsByClassName('callQty')[0]
       elmPnl = tr.getElementsByClassName('callPnl')[0]
       callProfit += pnl
-    } else  if (tsym.tradingsymbol.slice(-2) == 'PE') {
+    } else  if (tsym.symbol.slice(-2) == 'PE') {
       elmQty = tr.getElementsByClassName('putQty')[0]
       elmPnl = tr.getElementsByClassName('putPnl')[0]
-     putprofit += pnl
+     putProfit += pnl
     }
 
     if (parseFloat(elmQty.innerHTML) >= 0 && tsym.quantity < 0) {
@@ -132,9 +132,9 @@ const get_pos = (obj) => {
       console.log('error: ' + e + tsym)
     }
   })
-  document.getElementById('callProfit').innerHTML = callProfit
-  document.getElementById('putProfit').innerHTML = putProfit
-  document.getElementById('ttlPnl').innerHTML = callprofit+putProfit
+  document.getElementById('ttlcallpnl').innerHTML = parseInt(callProfit)
+  document.getElementById('ttlputpnl').innerHTML = parseInt(putProfit)
+  document.getElementById('ttlpnl').innerHTML = parseInt(callProfit+putProfit)
 }
 
 let fired = 0
@@ -189,9 +189,8 @@ const batch_orders = (action) => {
   });
 }
 
-const clear = () => {
-
-  const checks = document.querySelectorAll('input[type=checkbox]');
+const clearBuySell = () => {
+  const checks = document.querySelectorAll('input[type=checkbox]:checked');
   let tgtChip
   let tgtQty
   let tgtDir
@@ -200,6 +199,7 @@ const clear = () => {
     const chip = chk.parentElement.parentElement.getElementsByClassName('chip')
     const qty  = chk.parentElement.parentElement.getElementsByClassName('ordQty')
     const dir = chk.parentElement.parentElement.getElementsByClassName('ordDir')
+
     if (opt == 'chkCall') {
       tgtChip = chip[0]
       tgtQty = qty[0]
@@ -214,6 +214,8 @@ const clear = () => {
     tgtChip.innerText = ''
     tgtQty.value = 0
     tgtDir.value = ''
+    //chk.removeAttribute("checked")
+    chk.click()
   });
 
 }
