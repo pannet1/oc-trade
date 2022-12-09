@@ -21,6 +21,7 @@ import inspect
 
 # points to add/sub to ltp for limit orders
 buff = 2
+sym = 'NIFTY'
 
 # toolkit modules
 u = Utilities()
@@ -31,7 +32,7 @@ logging = Logger(20, 'app.log')
 try:
     # init broker object
     tok_file = './../../../confid/bypass.tok'
-    lst_credential = f.get_lst_fm_yml('../../../confid/arun.yaml')
+    lst_credential = f.get_lst_fm_yml('../../../confid/bypass.yaml')
     if f.is_file_not_2day(tok_file) is False:
         dct_tkns = {}
         logging.info('token file modified today')
@@ -52,7 +53,6 @@ except Exception as e:
     logging.warning(f"unable to create broker object {e}")
 
 try:
-    sym = 'NIFTY'
     # validate option build dict files
     BUILD_PATH = "strikes/"
     lst_build_files = f.get_files_with_extn('yaml', BUILD_PATH)
@@ -183,6 +183,7 @@ def modify_orders(lst: List, dirtn: int, quotes: Dict):
                 elif status == 'WAITING':
                     logging.info(f'{book[o]["order_id"]} is {status}')
                 elif status == 'OPEN' or status == 'PENDING':
+                    logging.info(f'order book {book[o]}')
                     ltp = get_ltp_fm_chain(book[o]['symbol'], quotes)
                     ltp += (buff * dirtn)
                     logging.info(f'modifying {status} {o} {ltp}')

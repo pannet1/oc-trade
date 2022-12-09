@@ -95,7 +95,7 @@ const get_pos = (obj) => {
     if (tsym.quantity<0) {
       pnl = tsym.day_sell_value - tsym.day_buy_value + (tsym.quantity * ltp)
     } else if (tsym.quantity>0) {
-      pnl = tsym.day_sell_value - tsym.day_buy_value + (tsym.quantity * ltp *-1)
+      pnl = tsym.day_sell_value - tsym.day_buy_value - (tsym.quantity * ltp)
     } else {
       pnl = tsym.pnl
     }
