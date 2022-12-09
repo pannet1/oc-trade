@@ -93,9 +93,9 @@ const get_pos = (obj) => {
     const ltp = elmTsym.innerHTML
 
     if (tsym.quantity<0) {
-      pnl = tsym.day_sell_value - tsym.day_buy_value + (tsym.quantity * ltp)
-    } else if (tsym.quantity>0) {
       pnl = tsym.day_sell_value - tsym.day_buy_value - (tsym.quantity * ltp)
+    } else if (tsym.quantity>0) {
+      pnl = tsym.day_sell_value - tsym.day_buy_value + (tsym.quantity * ltp)
     } else {
       pnl = tsym.pnl
     }

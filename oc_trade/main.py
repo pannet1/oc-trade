@@ -20,7 +20,7 @@ from copy import deepcopy
 import inspect
 
 # points to add/sub to ltp for limit orders
-buff = 2
+buff = -2
 sym = 'NIFTY'
 
 # toolkit modules
