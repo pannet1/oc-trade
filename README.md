@@ -39,5 +39,5 @@ totp: ABCDEFGHIJKLMNO9VERVQIO45ESDFDFASD
 * if the enctoken is empty, a new token is generated and reused throughout the day
 ```
 cd py39\oc-trade\oc_trade 
-uvicorn main:app --reload
+py main.py
 ```
