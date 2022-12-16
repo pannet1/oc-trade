@@ -2,7 +2,7 @@ base_name: NIFTY
 base_script: NFO:NIFTY22DECFUT
 sample: 18000
 addsub: 50
-expiry: 22D15
+expiry: 22D22
 abv_atm: 7
 opt_exch: NFO
 

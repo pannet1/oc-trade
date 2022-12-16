@@ -12,12 +12,12 @@ from connection_manager import ConnectionManager
 from oc_builder import Oc_builder
 import pandas as pd
 import uvicorn
-
 import json
 import asyncio
 import re
 from copy import deepcopy
 import inspect
+import sys
 
 # points to add/sub to ltp for limit orders
 buff = -2
@@ -26,7 +26,7 @@ sym = 'NIFTY'
 # toolkit modules
 u = Utilities()
 f = Fileutils()
-logging = Logger(20, 'app.log')
+logging = Logger(20)
 
 
 try:
@@ -35,22 +35,35 @@ try:
     lst_credential = f.get_lst_fm_yml('../../../confid/bypass.yaml')
     if f.is_file_not_2day(tok_file) is False:
         dct_tkns = {}
-        logging.info('token file modified today')
+        logging.info('token file modified today ... reading enctoken')
         with open(tok_file, 'r') as tf:
             enctoken = (
                 tf.read().decode('utf-8').strip()
                 if isinstance(tf.read(), bytes)
                 else tf.read().strip()
             )
+            print(enctoken)
+            if not enctoken:
+                enctoken = tf.read()
+                print(enctoken)
         if enctoken:
             dct_tkns['enctoken'] = enctoken
             dct_tkns['userid'] = lst_credential.get('userid')
             lst_credential = dct_tkns
+            logging.info(f'enctoken in file {enctoken}')
+        if not any(dct_tkns):
+            logging.warning('failed to read enctoken or its empty')
+
     bypass = Bypass(lst_credential)
-    with open(tok_file, 'w') as tf:
-        tf.write(bypass.kite.enctoken)
+    if not enctoken:
+        enctoken = bypass.kite.enctoken
+        with open(tok_file, 'w') as tw:
+            tw.write(enctoken)
+    if not enctoken:
+        print("all attempt to get enctoken failed exiting")
+        sys.exit(0)
 except Exception as e:
-    logging.warning(f"unable to create broker object {e}")
+    logging.error(f"unable to create broker object {e}")
 
 try:
     # validate option build dict files
