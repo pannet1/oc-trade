@@ -1,6 +1,7 @@
 from toolkit.fileutils import Fileutils
 from toolkit.utilities import Utilities
 from toolkit.logger import Logger
+from toolkit.conman import ConnectionManager
 from datetime import datetime as dt
 from typing import List, Dict, Optional
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, Form
@@ -8,7 +9,6 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from omspy_brokers.bypass import Bypass
-from connection_manager import ConnectionManager
 from oc_builder import Oc_builder
 import pandas as pd
 import uvicorn
@@ -17,7 +17,6 @@ import asyncio
 import re
 from copy import deepcopy
 import inspect
-import sys
 
 # points to add/sub to ltp for limit orders
 buff = -2
@@ -31,37 +30,35 @@ logging = Logger(20)
 
 try:
     # init broker object
-    tok_file = './../../../confid/bypass.tok'
-    lst_credential = f.get_lst_fm_yml('../../../confid/bypass.yaml')
-    if f.is_file_not_2day(tok_file) is False:
-        dct_tkns = {}
-        logging.info('token file modified today ... reading enctoken')
-        with open(tok_file, 'r') as tf:
+    sec_dir = '../../../confid/'
+    lst_c = f.get_lst_fm_yml(sec_dir + 'bypass.yaml')
+    tokpath = sec_dir + lst_c['userid'] + '.txt'
+    enctoken = None
+    if f.is_file_not_2day(tokpath) is False:
+        logging.info(
+            f'token file modified today ... reading enctoken {enctoken}')
+        with open(tokpath, 'r') as tf:
             enctoken = (
                 tf.read().decode('utf-8').strip()
                 if isinstance(tf.read(), bytes)
                 else tf.read().strip()
             )
-            print(enctoken)
-            if not enctoken:
+        if not enctoken:
+            with open(tokpath, 'r') as tf:
                 enctoken = tf.read()
-                print(enctoken)
-        if enctoken:
-            dct_tkns['enctoken'] = enctoken
-            dct_tkns['userid'] = lst_credential.get('userid')
-            lst_credential = dct_tkns
-            logging.info(f'enctoken in file {enctoken}')
-        if not any(dct_tkns):
-            logging.warning('failed to read enctoken or its empty')
-
-    bypass = Bypass(lst_credential)
-    if not enctoken:
-        enctoken = bypass.kite.enctoken
-        with open(tok_file, 'w') as tw:
-            tw.write(enctoken)
-    if not enctoken:
-        print("all attempt to get enctoken failed exiting")
-        sys.exit(0)
+    if enctoken == '':
+        enctoken = None
+    logging.info(f'enctoken to broker {enctoken}')
+    bypass = Bypass(lst_c['userid'],
+                    lst_c['password'],
+                    lst_c['totp'],
+                    tokpath,
+                    enctoken)
+    if bypass.authenticate():
+        if not enctoken:
+            enctoken = bypass.kite.enctoken
+            with open(tokpath, 'w') as tw:
+                tw.write(enctoken)
 except Exception as e:
     logging.error(f"unable to create broker object {e}")
 
