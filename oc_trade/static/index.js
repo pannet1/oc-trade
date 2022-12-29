@@ -214,7 +214,6 @@ const clearBuySell = () => {
     tgtChip.innerText = ''
     tgtQty.value = 0
     tgtDir.value = ''
-    //chk.removeAttribute("checked")
     chk.click()
   });
 

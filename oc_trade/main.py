@@ -37,17 +37,19 @@ try:
     if f.is_file_not_2day(tokpath) is False:
         logging.info(
             f'token file modified today ... reading enctoken {enctoken}')
+        """
         with open(tokpath, 'r') as tf:
             enctoken = (
                 tf.read().decode('utf-8').strip()
                 if isinstance(tf.read(), bytes)
                 else tf.read().strip()
             )
-        if not enctoken:
-            with open(tokpath, 'r') as tf:
-                enctoken = tf.read()
-    if enctoken == '':
-        enctoken = None
+
+        """
+        with open(tokpath, 'r') as tf:
+            enctoken = tf.read()
+            if len(enctoken) < 5:
+                enctoken = None
     logging.info(f'enctoken to broker {enctoken}')
     bypass = Bypass(lst_c['userid'],
                     lst_c['password'],
@@ -83,6 +85,9 @@ buy_pipe, sell_pipe, BUY_OPEN, SELL_OPEN = [], [], [], []
 
 
 def get_quotes():
+    """
+    consumed by websocket for display
+    """
     try:
         global base_ltp
         exchsym.append(dct_build['base_script'])
@@ -92,9 +97,9 @@ def get_quotes():
         row = {}
         option_types_n_strikes = [
             (tradingsymbol, "CALL", re.search(
-                r"(\d{5})+?CE?", tradingsymbol).group(0)[:-2])
+                r"(\d{5})+?CE?", tradingsymbol).group(1)[:5])
             if tradingsymbol.endswith("CE")
-            else (tradingsymbol, "PUT", re.search(r"(\d{5})+?PE?", tradingsymbol).group(0)[:-2])
+            else (tradingsymbol, "PUT", re.search(r"(\d{5})+?PE?", tradingsymbol).group(1)[:5])
             for tradingsymbol in [key.split(":")[-1] for key in resp.keys()]
         ]
         [
@@ -126,11 +131,11 @@ def get_quotes():
 
 def get_ltp_fm_chain(tsym: str, quotes: List):
     if tsym.endswith('CE'):
-        strike = re.search(r"(\d{5})+?CE?", tsym).group(0)[:-2]
+        strike = re.search(r"(\d{5})+?CE?", tsym).group(1)[:5]
         ltp = quotes.get(strike).get('call').get(tsym)
         return ltp
     elif tsym.endswith('PE'):
-        strike = re.search(r"(\d{5})+?PE?", tsym).group(0)[:-2]
+        strike = re.search(r"(\d{5})+?PE?", tsym).group(1)[:5]
         ltp = quotes.get(strike).get('put').get(tsym)
         return ltp
     else:
@@ -139,17 +144,7 @@ def get_ltp_fm_chain(tsym: str, quotes: List):
 # orders helper
 
 
-def upordn(old_sym: str, mv_by: int):
-    if old_sym.endswith('CE'):
-        old_strk = re.search(r"(\d{5})+?CE?", old_sym).group(0)[:-2]
-    elif old_sym.endswith('PE'):
-        old_strk = re.search(r"(\d{5})+?PE?", old_sym).group(0)[:-2]
-    new_strk = int(old_strk) + (mv_by * dct_build['addsub'])
-    new_sym = old_sym.replace(old_strk, str(new_strk))
-    return new_sym
-
-
-def order_place(order: List):
+def _order_place(order: List):
     try:
         order_id = bypass.order_place(**order)
         if isinstance(order_id, str):
@@ -160,45 +155,50 @@ def order_place(order: List):
         logging.warning(f'order place {e}')
 
 
-def get_orders():
-    order_book = bypass.orders
-    data = {}
-    if any(order_book):
-        for page in order_book:
-            order_id = page['order_id']
-            data[order_id] = page
-    return data
+POSITIONS = {}
 
 
-def get_positions():
+async def get_positions():
+    global POSITIONS
     pos = bypass.positions
     data = {}
     if any(pos):
         for d in range(len(pos)):
             data[pos[d]['symbol']] = pos[d]
+    POSITIONS = data
     return data
 
 
-def modify_orders(lst: List, dirtn: int, quotes: Dict):
+def _modify_orders(lst: List, dirtn: int, quotes: Dict):
+    def get_orders():
+        order_book = bypass.orders
+        data = {}
+        if any(order_book):
+            for page in order_book:
+                order_id = page['order_id']
+                data[order_id] = page
+        return data
+
     try:
         book = get_orders()
         if any(book):
             for o in lst:
                 status = book[o]['status']
-                if status == 'REJECTED' or status == 'CANCELLED':
+                logging.info(f'{book[o]["order_id"]} is {status}')
+                if status == 'REJECTED' or status == 'CANCELLED' or status == 'COMPLETE':
                     lst.pop()
-                    logging.warning(f'{status} {o}')
-                elif status == 'COMPLETE':
-                    lst.pop()
-                elif status == 'WAITING':
-                    logging.info(f'{book[o]["order_id"]} is {status}')
+                    logging.INFO('removing')
                 elif status == 'OPEN' or status == 'PENDING':
-                    logging.info(f'order book {book[o]}')
                     ltp = get_ltp_fm_chain(book[o]['symbol'], quotes)
                     ltp += (buff * dirtn)
-                    logging.info(f'modifying {status} {o} {ltp}')
-                    bypass.order_modify(
-                        price=ltp, order_id=book[o]['order_id'])
+                    logging.info(f'modifying price to {ltp}')
+                    try:
+                        bypass.order_modify(
+                            price=ltp, order_id=book[o]['order_id'])
+                    except Exception as e:
+                        lst.pop()
+                        logging.warning(f'modify orders {e}')
+
             return lst
         return []
     except Exception as e:
@@ -206,39 +206,42 @@ def modify_orders(lst: List, dirtn: int, quotes: Dict):
 
 
 def do_orders(quotes):
+    """
+    processed by websocket
+    """
     global buy_pipe, sell_pipe, BUY_OPEN, SELL_OPEN
     # are broker buy orders open in ?
-    if BUY_OPEN:
+    if any(BUY_OPEN):
         lst_cp = deepcopy(BUY_OPEN)
-        BUY_OPEN = modify_orders(lst_cp, 1, quotes)
+        BUY_OPEN = _modify_orders(lst_cp, 1, quotes)
         return 1
-    elif buy_pipe:
+    elif any(buy_pipe):
         for o in buy_pipe:
             ltp = get_ltp_fm_chain(o['symbol'], quotes)
             o['price'] = ltp + (1*buff)
-            order_id = order_place(o)
+            order_id = _order_place(o)
             if order_id:
                 BUY_OPEN.append(order_id)
                 logging.info(f'buy order {order_id} placed')
             else:
                 logging.warning('buy order failed')
-            buy_pipe.pop()
+        buy_pipe = []
         return 2
     elif SELL_OPEN:
         lst_cp = deepcopy(SELL_OPEN)
-        SELL_OPEN = modify_orders(lst_cp, -1, quotes)
+        SELL_OPEN = _modify_orders(lst_cp, -1, quotes)
         return -1
     elif sell_pipe:
         for o in sell_pipe:
             ltp = get_ltp_fm_chain(o['symbol'], quotes)
             o['price'] = ltp - (1*buff)
-            order_id = order_place(o)
+            order_id = _order_place(o)
             if order_id:
                 SELL_OPEN.append(order_id)
                 logging.info(f'sell order {order_id} placed')
             else:
                 logging.warning(f'sell order {o} failed')
-            sell_pipe.pop()
+        sell_pipe = []
         return -2
 
 
@@ -256,20 +259,28 @@ async def slp_til_next_sec():
 
 
 @app.post("/orders")
-async def post_orders(
+def post_orders(
     oqty: Optional[List[str]] = Form(),
     inp: str = Form(), do: str = Form(),
     tsym: List[str] = Form(),
     odir: Optional[List[str]] = Form(),
     chk: Optional[List[str]] = Form()
 ):
-    global buy_pipe, sell_pipe
+    def upordn(old_sym: str, mv_by: int):
+        if old_sym.endswith('CE'):
+            old_strk = re.search(r"(\d{5})+?CE?", old_sym).group(0)[:-2]
+        elif old_sym.endswith('PE'):
+            old_strk = re.search(r"(\d{5})+?PE?", old_sym).group(0)[:-2]
+        new_strk = int(old_strk) + (mv_by * dct_build['addsub'])
+        new_sym = old_sym.replace(old_strk, str(new_strk))
+        return new_sym
+
+    global buy_pipe, sell_pipe, POSITIONS
 
     if (do == 'up') or (do == 'dn'):
         if len(chk) > 0 and int(inp) > 0:
-            pos = get_positions()
+            pos = deepcopy(POSITIONS)
             for sym in chk:
-                print(f'for {sym}')
                 if sym in pos:
                     o = {}
                     o['exchange'] = pos[sym]['exchange']
@@ -304,7 +315,7 @@ async def post_orders(
                 o['symbol'] = tsym[k]
                 if odir[k] == 'BUY':
                     buy_pipe.append(o)
-                else:
+                elif odir[k] == 'SELL':
                     sell_pipe.append(o)
 
     return {'buy orders': buy_pipe, 'sell orders': sell_pipe}
@@ -319,8 +330,8 @@ async def websocket_endpoint(websocket: WebSocket):
         data = {}
         while True:
             interval = await slp_til_next_sec()
-            positions = get_positions()
-            data['positions'] = positions
+            positions = await get_positions()
+            data['ipositions'] = positions
             interval = await slp_til_next_sec()
             quotes = get_quotes()
             do_orders(quotes)

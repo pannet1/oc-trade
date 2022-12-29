@@ -47,7 +47,7 @@ class Oc_builder:
             else:
                 return self.dct_build['sample']
         elif base_ltp_on_start < self.dct_build['sample']:
-            diff = self.dct_build['sample']-o
+            diff = self.dct_build['sample']-base_ltp_on_start
             nof_step = diff/self.dct_build['addsub']
             if nof_step >= 1:
                 ret = int(nof_step)*self.dct_build['addsub']
