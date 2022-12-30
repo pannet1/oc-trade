@@ -327,11 +327,12 @@ def post_orders(
 async def websocket_endpoint(websocket: WebSocket):
     await ws_cm.connect(websocket)
     try:
+        global POSITIONS
         data = {}
         while True:
             interval = await slp_til_next_sec()
-            positions = await get_positions()
-            data['positions'] = positions
+            await get_positions()
+            data['positions'] = POSITIONS
             interval = await slp_til_next_sec()
             quotes = get_quotes()
             do_orders(quotes)
