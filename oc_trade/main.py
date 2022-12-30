@@ -331,7 +331,7 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             interval = await slp_til_next_sec()
             positions = await get_positions()
-            data['ipositions'] = positions
+            data['positions'] = positions
             interval = await slp_til_next_sec()
             quotes = get_quotes()
             do_orders(quotes)
