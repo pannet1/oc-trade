@@ -25,7 +25,7 @@ sym = 'NIFTY'
 # toolkit modules
 u = Utilities()
 f = Fileutils()
-logging = Logger(20)
+logging = Logger(20, 'app.log')
 
 
 try:
@@ -326,10 +326,10 @@ def post_orders(
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await ws_cm.connect(websocket)
-    try:
-        global POSITIONS
-        data = {}
-        while True:
+    global POSITIONS
+    data = {}
+    while True:
+        try:
             interval = await slp_til_next_sec()
             await get_positions()
             data['positions'] = POSITIONS
@@ -343,8 +343,9 @@ async def websocket_endpoint(websocket: WebSocket):
                             'atm': atm,
                             'ltp': base_ltp}
             await ws_cm.send_personal_message(json.dumps(data), websocket)
-    except WebSocketDisconnect:
-        ws_cm.disconnect(websocket)
+        except WebSocketDisconnect:
+            ws_cm.disconnect(websocket)
+            break
 
 
 @app.get("/", response_class=HTMLResponse)
