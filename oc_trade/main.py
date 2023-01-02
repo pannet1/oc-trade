@@ -198,7 +198,6 @@ def _modify_orders(lst: List, dirtn: int, quotes: Dict):
                     except Exception as e:
                         lst.pop()
                         logging.warning(f'modify orders {e}')
-
             return lst
         return []
     except Exception as e:
@@ -330,17 +329,16 @@ async def websocket_endpoint(websocket: WebSocket):
     data = {}
     while True:
         try:
-            interval = await slp_til_next_sec()
-            await get_positions()
+            POSITIONS = await get_positions()
             data['positions'] = POSITIONS
             interval = await slp_til_next_sec()
-            quotes = get_quotes()
-            do_orders(quotes)
-            data['quotes'] = quotes
+            data['quotes'] = get_quotes()
+            do_orders(data['quotes'])
             atm = oc.get_atm_strike(base_ltp)
             data['time'] = {'slept': interval,
                             'tsym': dct_build['base_script'],
                             'atm': atm,
+                            'lot': dct_build['opt_lot'],
                             'ltp': base_ltp}
             await ws_cm.send_personal_message(json.dumps(data), websocket)
         except WebSocketDisconnect:

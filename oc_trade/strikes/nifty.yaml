@@ -5,4 +5,4 @@ addsub: 100
 expiry: '23105'
 abv_atm: 7
 opt_exch: NFO
-
+opt_lot: 50
