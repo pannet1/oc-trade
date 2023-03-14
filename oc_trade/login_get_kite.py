@@ -1,8 +1,6 @@
 from toolkit.fileutils import Fileutils
-from toolkit.logger import Logger
 from omspy_brokers.bypass import Bypass
 from omspy.brokers.zerodha import Zerodha
-logging = Logger(20, 'app.log')
 
 
 f = Fileutils()
@@ -13,9 +11,10 @@ def get_kite(api=""):
     kite = False
     if api == "bypass":
         kite = _get_bypass()
+        print("tried login BYPASS")
     else:
         kite = _get_zerodha()
-        kite.authenticate()
+        print("tried login ZERODHA")
     return kite
 
 
@@ -25,13 +24,12 @@ def _get_bypass():
         tokpath = sec_dir + lst_c['userid'] + '.txt'
         enctoken = None
         if f.is_file_not_2day(tokpath) is False:
-            logging.info(
-                f'token file modified today ... reading enctoken {enctoken}')
+            print(f'file modified today ... reading {enctoken}')
             with open(tokpath, 'r') as tf:
                 enctoken = tf.read()
                 if len(enctoken) < 5:
                     enctoken = None
-        logging.info(f'enctoken to broker {enctoken}')
+        print(f'enctoken to broker {enctoken}')
         bypass = Bypass(lst_c['userid'],
                         lst_c['password'],
                         lst_c['totp'],
@@ -43,7 +41,7 @@ def _get_bypass():
                 with open(tokpath, 'w') as tw:
                     tw.write(enctoken)
     except Exception as e:
-        logging.error(f"unable to create broker object {e}")
+        print(f"unable to create bypass object {e}")
     else:
         return bypass
 
@@ -58,7 +56,8 @@ def _get_zerodha():
                        secret=fdct['secret'],
                        tokpath=sec_dir + fdct['userid'] + '.txt'
                        )
+        zera.authenticate()
     except Exception as e:
-        logging.error(f"unable to create broker object {e}")
+        print(f"unable to create zerodha object {e}")
     else:
         return zera
