@@ -59,7 +59,7 @@ def _modify_orders(lst: List, dirtn: int, quotes: Dict):
                 logging.info(f'{book[o]["order_id"]} is {status}')
                 if status == 'REJECTED' or status == 'CANCELLED' or status == 'COMPLETE':
                     lst.pop()
-                    logging.info('removing')
+                    logging.INFO('removing')
                 elif status == 'OPEN' or status == 'PENDING':
                     ltp = get_ltp_fm_chain(book[o]['symbol'], quotes)
                     ltp += (buff * dirtn)

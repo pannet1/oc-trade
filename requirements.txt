@@ -8,6 +8,3 @@ git+https://github.com/pannet1/kiteext.git
 python-multipart
 uvicorn[standard]
 fastapi
-selenium
-webdriver_manager
-jinja2

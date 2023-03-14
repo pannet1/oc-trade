@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 base_name: NIFTY
 base_script: NFO:NIFTY23MARFUT
 sample: 18000
@@ -7,13 +6,3 @@ expiry: '23316'
 abv_atm: 7
 opt_exch: NFO
 opt_lot: 50
-=======
-base_name: NIFTY
-base_script: NFO:NIFTY23FEBFUT
-sample: 18000
-addsub: 100
-expiry: '23202'
-abv_atm: 7
-opt_exch: NFO
-opt_lot: 50
->>>>>>> e63b356e26ec531d00410600659da77160c58f30
