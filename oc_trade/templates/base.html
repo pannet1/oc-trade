@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+        <title>Option Chain Trader</title>
+        <link
+        href="https://fonts.googleapis.com/css?family=Rock+Salt"
+        rel="stylesheet"
+        type="text/css" />
+        <link href="./static/pico.slim.css" rel="stylesheet" type="text/css">
+        <script src="./static/index.js"></script>
+</head>
+    <body>
+        <div class='menu'>
+                <a href='/orderbook' target="_blank" rel="noopener noreferrer">orders</a>
+                <a href='/positionbook' target="_blank" rel="noopener noreferrer">positions</a>
+                <a href='/tradebook' target="_blank" rel="noopener noreferrer">trades</a>
+        </div>
+        <div class='wrapper'>
+                {% block form %}
+                <div class='table-wrapper'>
+
+                </div>
+                {% endblock form %}
+                {% block content %}
+                {% endblock content %}
+        </div>
+    </body>
+</html>
+
+

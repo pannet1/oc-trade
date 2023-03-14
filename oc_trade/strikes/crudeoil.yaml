@@ -1,0 +1,8 @@
+base_name: CRUDEOIL
+base_script: MCX:CRUDEOIL22DECFUT
+sample: 7000
+addsub: 50
+expiry: 22DEC
+abv_atm: 1
+opt_exch: MCX
+

@@ -1,0 +1,8 @@
+base_name: BANKNIFTY
+base_script: NFO:BANKNIFTY23FEBFUT
+sample: 40000
+addsub: 100
+expiry: '23209'
+abv_atm: 7
+opt_exch: NFO
+opt_lot: 25

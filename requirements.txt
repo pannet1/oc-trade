@@ -1,0 +1,13 @@
+wheel
+pydantic
+pandas
+git+https://github.com/pannet1/omspy-brokers.git
+git+https://github.com/pannet1/toolkit.git
+kiteconnect
+git+https://github.com/pannet1/kiteext.git
+python-multipart
+uvicorn[standard]
+fastapi
+selenium
+webdriver_manager
+jinja2

@@ -1,0 +1,76 @@
+* {
+  font-size: 1.2rem;  
+}
+
+input[type=checkbox] {
+  transform: scale(1.5);
+  margin: .5rem;
+}
+
+@media screen and (max-width: 700px) {
+	
+	table {
+		border-collapse: collapse;
+		margin-bottom: 50px;
+		width: 100%;
+	}
+
+	table td {
+		display: block;
+		width: 100%;
+	}
+
+	table tr th {
+		border-bottom: 1px solid rgba(0,0,0,0.2);
+	}
+
+	table thead,
+	table thead + tbody tr:nth-child(even),
+	table tbody:first-child tr:nth-child(odd) {
+		background: rgba(0,0,0,0.05);
+	}
+
+	/* Use flexbox to remove the headers from their columns */
+	table thead tr,
+	table tbody:first-child tr:first-child {
+		display: flex;
+		text-align: left;
+	}
+	
+	/* Remove the right border from all but the last cell */
+	table thead tr th:not(:last-child),
+	table tr:first-child th:not(:last-child) {
+		border-right: 0;
+	}
+
+	/* Let the last cell take up all of the available space, bringing all the content next to each other */
+	table thead tr th:last-child,
+	table tr:first-child th:last-child {
+		flex: 1;
+	}
+	
+	/* Remove any LEFT padding from all except the first cell */
+	table thead tr th:not(:first-child),
+	table tr:first-child th:not(:first-child) {
+		padding-left: 0;
+	}
+
+	/* Remove any RIGHT padding from all except the last cell */
+	table thead tr th:not(:last-child),
+	table tr:first-child th:not(:last-child) {
+		padding-right: 0;
+	}
+
+	/* Add a comma and a space before to all but the first cell */
+	table thead tr th:not(:first-child):before,
+	table tr:first-child th:not(:first-child):before {
+		content: ',\00a0';
+	}
+
+	/* Add ' & ' before the last cell */
+	table thead tr th:last-child:before,
+	table tr:first-child th:last-child:before {
+		content: '\00a0\0026\00a0';
+	}
+
+}
