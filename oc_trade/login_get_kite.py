@@ -19,7 +19,9 @@ def get_kite(api="", sec_dir="/"):
 
 def _get_bypass(sec_dir):
     try:
-        lst_c = f.get_lst_fm_yml(sec_dir + 'bypass.yaml')
+        fpath = sec_dir + 'bypass.yaml'
+        print(f'reading credentials from {fpath}')
+        lst_c = f.get_lst_fm_yml(fpath)
         tokpath = sec_dir + lst_c['userid'] + '.txt'
         enctoken = None
         if f.is_file_not_2day(tokpath) is False:
@@ -45,9 +47,12 @@ def _get_bypass(sec_dir):
         return bypass
 
 
-def _get_zerodha(sec_dir):
+def _get_paid(sec_dir):
     try:
-        fdct = f.get_lst_fm_yml(sec_dir + 'zerodha.yaml')
+        fpath = sec_dir + 'paid.yaml'
+        print(f'reading credentials from {fpath}')
+        fdct = f.get_lst_fm_yml(fpath)
+        print(fdct)
         zera = Zerodha(user_id=fdct['userid'],
                        password=fdct['password'],
                        totp=fdct['totp'],
@@ -57,6 +62,6 @@ def _get_zerodha(sec_dir):
                        )
         zera.authenticate()
     except Exception as e:
-        print(f"unable to create zerodha object {e}")
+        print(f"unable to create paid object {e}")
     else:
         return zera

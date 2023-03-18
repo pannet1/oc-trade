@@ -26,11 +26,11 @@ api = ""  # "" is zerodha, optional bypass
 buff = 2
 sym = 'NIFTY'
 
-logging = Logger(20, 'app.log')
+sec_dir = "../../confid/"
+logging = Logger(20, sec_dir + 'oc-trade.log')
 # toolkit modules
 u = Utilities()
 f = Fileutils()
-sec_dir = "../../confid"
 kite = get_kite(api, sec_dir)
 
 try:
