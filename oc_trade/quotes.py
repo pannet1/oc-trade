@@ -54,8 +54,3 @@ def slp_til_next_sec():
     return interval
 
 
-if __name__ == "__main__":
-    while True:
-        q = option_chain()
-        print(q)
-        slp_til_next_sec()

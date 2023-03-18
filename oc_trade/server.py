@@ -1,3 +1,8 @@
+import pandas as pd
+import uvicorn
+import json
+import asyncio
+import re
 from toolkit.fileutils import Fileutils
 from toolkit.utilities import Utilities
 from toolkit.logger import Logger
@@ -9,16 +14,12 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from oc_builder import Oc_builder
-import pandas as pd
-import uvicorn
-import json
-import asyncio
-import re
 from copy import deepcopy
 import inspect
 from time import sleep
 from quotes import option_chain
-from orders import get_ltp_fm_chain, _modify_orders, _order_place
+from orders import Orders
+from chain import get_ltp_fm_chain
 from login_get_kite import get_kite
 
 api = ""  # "" is zerodha, optional bypass
@@ -33,6 +34,7 @@ logging = Logger(20, WORK_PATH + 'oc-trade.log')
 u = Utilities()
 f = Fileutils()
 kite = get_kite(api, WORK_PATH)
+ords = Orders(kite, logging, buff)
 
 try:
     # validate option build dict files
@@ -99,13 +101,13 @@ async def do_orders(quotes):
     # are broker buy orders open in ?
     if any(BUY_OPEN):
         lst_cp = deepcopy(BUY_OPEN)
-        BUY_OPEN = _modify_orders(lst_cp, 1, quotes)
+        BUY_OPEN = ords._modify_orders(lst_cp, 1, quotes)
         return 1
     elif any(buy_pipe):
         for o in buy_pipe:
             ltp = get_ltp_fm_chain(o['symbol'], quotes)
             o['price'] = ltp + (1*buff)
-            order_id = _order_place(o)
+            order_id = ords._order_place(o)
             if order_id:
                 BUY_OPEN.append(order_id)
                 logging.info(f'buy order {order_id} placed')
@@ -115,13 +117,13 @@ async def do_orders(quotes):
         return 2
     elif SELL_OPEN:
         lst_cp = deepcopy(SELL_OPEN)
-        SELL_OPEN = _modify_orders(lst_cp, -1, quotes)
+        SELL_OPEN = ords._modify_orders(lst_cp, -1, quotes)
         return -1
     elif sell_pipe:
         for o in sell_pipe:
             ltp = get_ltp_fm_chain(o['symbol'], quotes)
             o['price'] = ltp - (1*buff)
-            order_id = _order_place(o)
+            order_id = ords._order_place(o)
             if order_id:
                 SELL_OPEN.append(order_id)
                 logging.info(f'sell order {order_id} placed')
