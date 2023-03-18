@@ -4,7 +4,7 @@ from omspy.brokers.zerodha import Zerodha
 
 
 f = Fileutils()
-sec_dir = '../../../confid/'
+sec_dir = '../../confid/'
 
 
 def get_kite(api=""):
