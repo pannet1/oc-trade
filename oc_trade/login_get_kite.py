@@ -9,11 +9,11 @@ f = Fileutils()
 def get_kite(api="", sec_dir="/"):
     kite = False
     if api == "bypass":
+        print("trying login BYPASS ..")
         kite = _get_bypass(sec_dir)
-        print("tried login BYPASS")
     else:
+        print("trying login ZERODHA ..")
         kite = _get_zerodha(sec_dir)
-        print("tried login ZERODHA")
     return kite
 
 
@@ -47,9 +47,9 @@ def _get_bypass(sec_dir):
         return bypass
 
 
-def _get_paid(sec_dir):
+def _get_zerodha(sec_dir):
     try:
-        fpath = sec_dir + 'paid.yaml'
+        fpath = sec_dir + 'zerodha.yaml'
         print(f'reading credentials from {fpath}')
         fdct = f.get_lst_fm_yml(fpath)
         print(fdct)
@@ -62,6 +62,6 @@ def _get_paid(sec_dir):
                        )
         zera.authenticate()
     except Exception as e:
-        print(f"unable to create paid object {e}")
+        print(f"unable to create zerodha object {e}")
     else:
         return zera
