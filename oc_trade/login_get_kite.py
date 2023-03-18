@@ -4,21 +4,20 @@ from omspy.brokers.zerodha import Zerodha
 
 
 f = Fileutils()
-sec_dir = '../../confid/'
 
 
-def get_kite(api=""):
+def get_kite(api="", sec_dir="/"):
     kite = False
     if api == "bypass":
-        kite = _get_bypass()
+        kite = _get_bypass(sec_dir)
         print("tried login BYPASS")
     else:
-        kite = _get_zerodha()
+        kite = _get_zerodha(sec_dir)
         print("tried login ZERODHA")
     return kite
 
 
-def _get_bypass():
+def _get_bypass(sec_dir):
     try:
         lst_c = f.get_lst_fm_yml(sec_dir + 'bypass.yaml')
         tokpath = sec_dir + lst_c['userid'] + '.txt'
@@ -46,7 +45,7 @@ def _get_bypass():
         return bypass
 
 
-def _get_zerodha():
+def _get_zerodha(sec_dir):
     try:
         fdct = f.get_lst_fm_yml(sec_dir + 'zerodha.yaml')
         zera = Zerodha(user_id=fdct['userid'],

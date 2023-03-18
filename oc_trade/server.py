@@ -21,7 +21,7 @@ from quotes import option_chain
 from orders import get_ltp_fm_chain, _modify_orders, _order_place
 from login_get_kite import get_kite
 
-api = "zerodha"  # zerodha or bypass
+api = ""  # "" is zerodha, optional bypass
 # points to add/sub to ltp for limit orders
 buff = 2
 sym = 'NIFTY'
@@ -30,8 +30,8 @@ logging = Logger(20, 'app.log')
 # toolkit modules
 u = Utilities()
 f = Fileutils()
-
-kite = get_kite(api)
+sec_dir = "../../confid"
+kite = get_kite(api, sec_dir)
 
 try:
     # validate option build dict files
