@@ -26,16 +26,16 @@ api = ""  # "" is zerodha, optional bypass
 buff = 2
 sym = 'NIFTY'
 
-sec_dir = "../../confid/"
-logging = Logger(20, sec_dir + 'oc-trade.log')
+WORK_PATH = "../../confid/"
+BUILD_PATH = WORK_PATH + "build/"
+logging = Logger(20, WORK_PATH + 'oc-trade.log')
 # toolkit modules
 u = Utilities()
 f = Fileutils()
-kite = get_kite(api, sec_dir)
+kite = get_kite(api, WORK_PATH)
 
 try:
     # validate option build dict files
-    BUILD_PATH = "strikes/"
     lst_build_files = f.get_files_with_extn('yaml', BUILD_PATH)
     oc = Oc_builder(lst_build_files, BUILD_PATH)
     oc.set_symbol_dict(sym)

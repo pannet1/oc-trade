@@ -1,8 +1,0 @@
-base_name: NIFTY
-base_script: NFO:NIFTY23MARFUT
-sample: 18000
-addsub: 100
-expiry: '23323'
-abv_atm: 7
-opt_exch: NFO
-opt_lot: 50

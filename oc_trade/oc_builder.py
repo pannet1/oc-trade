@@ -64,7 +64,7 @@ class Oc_builder:
             lst_strikes.append(atm + ((r+1)*dct_build['addsub']))
         for r in range(dct_build['abv_atm']):
             lst_strikes.append(atm - ((r+1)*dct_build['addsub']))
-        #lst_strikes = sorted(lst_strikes, reverse=True)
+        # lst_strikes = sorted(lst_strikes, reverse=True)
         exchsym = []
         for strike in lst_strikes:
             call = dct_build['opt_exch'] + ':' + dct_build['base_name'] + \
