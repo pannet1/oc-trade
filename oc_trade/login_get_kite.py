@@ -6,7 +6,7 @@ from omspy.brokers.zerodha import Zerodha
 f = Fileutils()
 
 
-def get_kite(api="", sec_dir="/"):
+def get_kite(api="", sec_dir="../../confid/"):
     kite = False
     if api == "bypass":
         print("trying login BYPASS ..")
@@ -62,6 +62,11 @@ def _get_zerodha(sec_dir):
                        )
         zera.authenticate()
     except Exception as e:
-        print(f"unable to create zerodha object {e}")
-    else:
+        print(f"exception while creating zerodha object {e}")
+    finally:
         return zera
+
+
+if __name__ == "__main__":
+    kobj = get_kite()
+    print(kobj.margins)
