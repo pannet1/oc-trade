@@ -1,5 +1,6 @@
 from typing import List, Dict
 from chain import get_ltp_fm_chain
+from enum import Enum
 
 
 class Orders:
@@ -7,6 +8,7 @@ class Orders:
         self.kite = kite
         self.logging = logging
         self.buff = buff
+        self.status = Status.EMPTY
 
     def _order_place(self, order: List):
         """
@@ -39,7 +41,7 @@ class Orders:
                     self.logging.info(f'{book[o]["order_id"]} is {status}')
                     if status == 'REJECTED' or status == 'CANCELLED' or status == 'COMPLETE':
                         lst.pop()
-                        self.logging.INFO('removing')
+                        self.logging.info('removing')
                     elif status == 'OPEN' or status == 'PENDING':
                         ltp = get_ltp_fm_chain(book[o]['symbol'], quotes)
                         ltp += (self.buff * dirtn)
@@ -54,3 +56,11 @@ class Orders:
             return []
         except Exception as e:
             self.logging.warning(f'modify orders {e}')
+
+
+class Status(Enum):
+    SELL_PIPE = -2
+    SELL_OPEN = -1
+    EMPTY = 0
+    BUY_OPEN = 1
+    BUY_PIPE = 2

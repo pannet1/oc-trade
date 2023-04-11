@@ -69,4 +69,4 @@ def _get_zerodha(sec_dir):
 
 if __name__ == "__main__":
     kobj = get_kite()
-    print(kobj.margins)
+    print(kobj.profile)

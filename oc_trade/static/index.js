@@ -73,7 +73,7 @@ const get_stat = (stat) => {
   menu.style.backgroundColor = `hsl(${h},${s}\%,${l}\%)`
   document.getElementById('tsym').innerText = stat.tsym
   document.getElementById('ltp').innerText = stat.ltp
-  document.getElementById('inp').value = stat.lot
+  // document.getElementById('inp').value = stat.lot
   const atm = stat.atm
   document.getElementById(atm).classList.add('ntrl')
   return atm

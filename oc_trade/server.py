@@ -18,9 +18,10 @@ from copy import deepcopy
 import inspect
 from time import sleep
 from quotes import option_chain
-from orders import Orders
+from orders import Orders, Status
 from chain import get_ltp_fm_chain
 from login_get_kite import get_kite
+
 
 api = ""  # "" is zerodha, optional bypass
 # points to add/sub to ltp for limit orders
@@ -29,12 +30,13 @@ sym = 'NIFTY'
 
 WORK_PATH = "../../confid/"
 BUILD_PATH = WORK_PATH + "build/"
-logging = Logger(20, WORK_PATH + 'oc-trade.log')
+logging = Logger(10, 'oc-trade.log')
 # toolkit modules
 u = Utilities()
 f = Fileutils()
 kite = get_kite(api, WORK_PATH)
 ords = Orders(kite, logging, buff)
+
 
 try:
     # validate option build dict files
@@ -99,11 +101,11 @@ async def do_orders(quotes):
     """
     global buy_pipe, sell_pipe, BUY_OPEN, SELL_OPEN
     # are broker buy orders open in ?
-    if any(BUY_OPEN):
+    if len(BUY_OPEN) > 0:
         lst_cp = deepcopy(BUY_OPEN)
         BUY_OPEN = ords._modify_orders(lst_cp, 1, quotes)
-        return 1
-    elif any(buy_pipe):
+        return Status.BUY_NEW
+    elif len(buy_pipe) > 0:
         for o in buy_pipe:
             ltp = get_ltp_fm_chain(o['symbol'], quotes)
             o['price'] = ltp + (1*buff)
@@ -114,12 +116,12 @@ async def do_orders(quotes):
             else:
                 logging.warning('buy order failed')
         buy_pipe = []
-        return 2
-    elif SELL_OPEN:
+        return Status.BUY_PIPE
+    elif len(SELL_OPEN) > 0:
         lst_cp = deepcopy(SELL_OPEN)
         SELL_OPEN = ords._modify_orders(lst_cp, -1, quotes)
-        return -1
-    elif sell_pipe:
+        return Status.SELL_OPEN
+    elif len(sell_pipe) > 0:
         for o in sell_pipe:
             ltp = get_ltp_fm_chain(o['symbol'], quotes)
             o['price'] = ltp - (1*buff)
@@ -130,8 +132,8 @@ async def do_orders(quotes):
             else:
                 logging.warning(f'sell order {o} failed')
         sell_pipe = []
-        return -2
-    return 0
+        return Status.SELL_PIPE
+    return Status.EMPTY
 
 
 async def slp_til_next_sec():
@@ -221,12 +223,11 @@ async def websocket_endpoint(websocket: WebSocket):
         try:
             data['positions'] = POSITIONS
             data['quotes'] = get_quotes()
-            print(data['quotes'])
             interval = 0
             interval = await slp_til_next_sec()
-            status = 0
             status = await do_orders(data['quotes'])
-            if status > 0 or status < 0:
+            print(f"Order {status}")
+            if status is not Status.EMPTY:
                 data['positions'] = await get_positions()
             atm = oc.get_atm_strike(base_ltp)
             data['time'] = {'slept': interval,
