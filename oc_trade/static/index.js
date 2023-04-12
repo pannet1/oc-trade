@@ -87,8 +87,9 @@ const get_pos = (obj) => {
   let putProfit = 0
 
   Object.keys(obj).forEach(function(pos) {
-    const tsym = obj[pos]
     try {
+    const tsym = obj[pos]
+    console.log(tsym.symbol + "" + tsym.quantity)
     const elmTsym = document.getElementById(tsym.symbol)
     const tr = elmTsym.parentElement
     const ltp = elmTsym.innerHTML
@@ -130,6 +131,7 @@ const get_pos = (obj) => {
     elmPnl.innerHTML = parseInt(pnl)
     }
     catch(e) {
+      console.log(tsym)
       console.log('error: ' + e + tsym)
     }
   })

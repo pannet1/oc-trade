@@ -30,7 +30,7 @@ sym = 'NIFTY'
 
 WORK_PATH = "../../confid/"
 BUILD_PATH = WORK_PATH + "build/"
-logging = Logger(10, 'oc-trade.log')
+logging = Logger(10, WORK_PATH + 'oc-trade.log')
 # toolkit modules
 u = Utilities()
 f = Fileutils()
@@ -88,7 +88,10 @@ async def get_positions():
     data = {}
     if any(pos):
         for d in range(len(pos)):
-            data[pos[d]['symbol']] = pos[d]
+            symbol = pos[d].get('symbol', "")
+            prodt = pos[d].get('product', "NRML")
+            if symbol.startswith(sym) and prodt != "NRML":
+                data[pos[d]['symbol']] = pos[d]
     POSITIONS = data
     return data
 
@@ -104,7 +107,7 @@ async def do_orders(quotes):
     if len(BUY_OPEN) > 0:
         lst_cp = deepcopy(BUY_OPEN)
         BUY_OPEN = ords._modify_orders(lst_cp, 1, quotes)
-        return Status.BUY_NEW
+        return Status.BUY_OPEN
     elif len(buy_pipe) > 0:
         for o in buy_pipe:
             ltp = get_ltp_fm_chain(o['symbol'], quotes)
@@ -123,6 +126,7 @@ async def do_orders(quotes):
         return Status.SELL_OPEN
     elif len(sell_pipe) > 0:
         for o in sell_pipe:
+            print(f"{o['symbol']:/n{quotes}"}
             ltp = get_ltp_fm_chain(o['symbol'], quotes)
             o['price'] = ltp - (1*buff)
             order_id = ords._order_place(o)
@@ -200,7 +204,7 @@ def post_orders(
                 o['exchange'] = dct_build['opt_exch']
                 o['side'] = odir[k]
                 o['order_type'] = 'LIMIT'
-                o['product'] = 'NRML'
+                o['product'] = 'MIS'
                 o['quantity'] = quantity
                 o['symbol'] = tsym[k]
                 if odir[k] == 'BUY':
@@ -227,8 +231,7 @@ async def websocket_endpoint(websocket: WebSocket):
             interval = await slp_til_next_sec()
             status = await do_orders(data['quotes'])
             print(f"Order {status}")
-            if status is not Status.EMPTY:
-                data['positions'] = await get_positions()
+            data['positions'] = await get_positions()
             atm = oc.get_atm_strike(base_ltp)
             data['time'] = {'slept': interval,
                             'tsym': dct_build['base_script'],
