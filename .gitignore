@@ -141,3 +141,5 @@ cython_debug/
 # project-specific
 *.tok
 poetry.lock
+
+chromedriver*/
