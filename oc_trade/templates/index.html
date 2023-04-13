@@ -70,5 +70,12 @@
             </tfoot>
         </table>
         </form>
+        <form>
+          <select>
+            {% for file in files %}
+            <option value="{{ file}}">{{ file }}</option>
+            {% endfor %}
+          </select>
+        </form>
 {% endblock form  %}
 

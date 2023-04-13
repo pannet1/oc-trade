@@ -21,7 +21,7 @@ from quotes import option_chain
 from orders import Orders, Status
 from chain import get_ltp_fm_chain
 from login_get_kite import get_kite
-
+import os 
 
 api = ""  # "" is zerodha, optional bypass
 # points to add/sub to ltp for limit orders
@@ -126,7 +126,7 @@ async def do_orders(quotes):
         return Status.SELL_OPEN
     elif len(sell_pipe) > 0:
         for o in sell_pipe:
-            print(f"{o['symbol']:/n{quotes}"}
+            print(f"{o['symbol']}:/n{quotes}")
             ltp = get_ltp_fm_chain(o['symbol'], quotes)
             o['price'] = ltp - (1*buff)
             order_id = ords._order_place(o)
@@ -151,6 +151,13 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 tmp = Jinja2Templates(directory='templates')
 
+
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request):
+    files = [os.path.splitext(f)[0] for f in os.listdir(BUILD_PATH)]
+    ctx = {"request": request, "title": inspect.stack()[0][3],
+           "files":files}
+    return tmp.TemplateResponse("index.html", ctx)
 
 @app.post("/orders")
 def post_orders(
@@ -217,44 +224,6 @@ def post_orders(
     #         'odir': odir, 'chk': chk }
 
 
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await ws_cm.connect(websocket)
-    global POSITIONS
-    data = {}
-    data['positions'] = await get_positions()
-    while True:
-        try:
-            data['positions'] = POSITIONS
-            data['quotes'] = get_quotes()
-            interval = 0
-            interval = await slp_til_next_sec()
-            status = await do_orders(data['quotes'])
-            print(f"Order {status}")
-            data['positions'] = await get_positions()
-            atm = oc.get_atm_strike(base_ltp)
-            data['time'] = {'slept': interval,
-                            'tsym': dct_build['base_script'],
-                            'atm': atm,
-                            'lot': dct_build['opt_lot'],
-                            'ltp': base_ltp}
-            is_quotes = data.get('quotes', 0)
-            if is_quotes:
-                await ws_cm.send_personal_message(json.dumps(data), websocket)
-            else:
-                interval = sleep(5)
-                print("invalid header sent to broker, sleeping")
-
-        except WebSocketDisconnect:
-            ws_cm.disconnect(websocket)
-            print("websocket disconnected")
-            break
-
-
-@app.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    ctx = {"request": request, "title": inspect.stack()[0][3]}
-    return tmp.TemplateResponse("index.html", ctx)
 
 
 @app.get("/orderbook", response_class=HTMLResponse)
@@ -297,6 +266,41 @@ async def tradebook(request: Request):
     ctx = {"request": request, "title": inspect.stack()[0][3],
            "data": df.to_html()}
     return tmp.TemplateResponse("table.html", ctx)
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await ws_cm.connect(websocket)
+    global POSITIONS
+    data = {}
+    data['positions'] = await get_positions()
+    while True:
+        try:
+            data['positions'] = POSITIONS
+            data['quotes'] = get_quotes()
+            interval = 0
+            interval = await slp_til_next_sec()
+            status = await do_orders(data['quotes'])
+            if status!= ords.status:
+                print(f"Order {status}")
+                data['positions'] = await get_positions()
+            ords.status = status
+            atm = oc.get_atm_strike(base_ltp)
+            data['time'] = {'slept': interval,
+                            'tsym': dct_build['base_script'],
+                            'atm': atm,
+                            'lot': dct_build['opt_lot'],
+                            'ltp': base_ltp}
+            is_quotes = data.get('quotes', 0)
+            if is_quotes:
+                await ws_cm.send_personal_message(json.dumps(data), websocket)
+            else:
+                interval = sleep(5)
+                print("invalid header sent to broker, sleeping")
+
+        except WebSocketDisconnect:
+            ws_cm.disconnect(websocket)
+            print("websocket disconnected")
+            break
 
 if __name__ == '__main__':
     uvicorn.run(app, host="0.0.0.0", port=8000)

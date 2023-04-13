@@ -1,4 +1,5 @@
-const init_html = (obj) => {
+const init_html = (obj, lotsize) => {
+  document.getElementById('inp').value = lotsize
   let markup = ""
   let ctml = ""
   let ptml = ""
@@ -150,7 +151,7 @@ ws.onmessage = function(event) {
         get_quotes(parsed.quotes, atm)
         get_pos(parsed.positions)
       } else {
-        init_html(parsed.quotes)
+        init_html(parsed.quotes, parsed.time.lot)
       }
      fired += 1
   }
