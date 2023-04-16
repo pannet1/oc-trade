@@ -1,2 +1,2 @@
 @echo on
-cmd /k "cd /d E:\PY\py39\Scripts & .\activate & cd /d E:\PY\py39\oc-trade\oc_trade & py main.py"
+cmd /k "cd /d E:\PY\Scripts & .\activate & cd /d E:\PY\py388\oc-trade\oc_trade & python main.py"
