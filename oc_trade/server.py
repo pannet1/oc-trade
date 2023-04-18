@@ -21,7 +21,7 @@ from quotes import option_chain
 from orders import Orders, Status
 from chain import get_ltp_fm_chain
 from login_get_kite import get_kite
-import os 
+import os
 
 api = ""  # "" is zerodha, optional bypass
 # points to add/sub to ltp for limit orders
@@ -30,7 +30,7 @@ sym = 'NIFTY'
 
 WORK_PATH = "../../confid/"
 BUILD_PATH = WORK_PATH + "build/"
-logging = Logger(10, WORK_PATH + 'oc-trade.log')
+logging = Logger(20, WORK_PATH + 'oc-trade.log')
 # toolkit modules
 u = Utilities()
 f = Fileutils()
@@ -111,11 +111,15 @@ async def do_orders(quotes):
     elif len(buy_pipe) > 0:
         for o in buy_pipe:
             ltp = get_ltp_fm_chain(o['symbol'], quotes)
-            o['price'] = ltp + (1*buff)
-            order_id = ords._order_place(o)
+            if ltp:
+                o['price'] = ltp + (1*buff)
+                order_id = ords._order_place(o)
+            else:
+                logging.warning(
+                    f"unable to get ltp for {o['symbol']} ignoring")
             if order_id:
                 BUY_OPEN.append(order_id)
-                logging.info(f'buy order {order_id} placed')
+                logging.info(f'buy order {order_id} placed for {o["symbol"]}')
             else:
                 logging.warning('buy order failed')
         buy_pipe = []
@@ -126,13 +130,16 @@ async def do_orders(quotes):
         return Status.SELL_OPEN
     elif len(sell_pipe) > 0:
         for o in sell_pipe:
-            print(f"{o['symbol']}:/n{quotes}")
             ltp = get_ltp_fm_chain(o['symbol'], quotes)
-            o['price'] = ltp - (1*buff)
-            order_id = ords._order_place(o)
+            if ltp:
+                o['price'] = ltp - (1*buff)
+                order_id = ords._order_place(o)
+            else:
+                logging.warning(
+                    f"unable to get ltp for {o['symbol']} ignoring")
             if order_id:
                 SELL_OPEN.append(order_id)
-                logging.info(f'sell order {order_id} placed')
+                logging.info(f'sell order {order_id} placed for {o["symbol"]}')
             else:
                 logging.warning(f'sell order {o} failed')
         sell_pipe = []
@@ -156,8 +163,9 @@ tmp = Jinja2Templates(directory='templates')
 async def home(request: Request):
     files = [os.path.splitext(f)[0] for f in os.listdir(BUILD_PATH)]
     ctx = {"request": request, "title": inspect.stack()[0][3],
-           "files":files}
+           "files": files}
     return tmp.TemplateResponse("index.html", ctx)
+
 
 @app.post("/orders")
 def post_orders(
@@ -190,8 +198,10 @@ def post_orders(
                     o['quantity'] = abs(pos[sym]['quantity'])
                     c = deepcopy(o)
                     o['symbol'] = pos[sym]['symbol']
+                    if inp >= dct_build['abv_atm']:
+                        return {"message": "the move requested is beyond the chain"}
                     mv_by = int(inp) if do == 'up' else int(inp) * -1
-                    logging.info(f'mv_by  {mv_by}')
+                    logging.info(f'mv_by {mv_by} ')
                     new_sym = upordn(pos[sym]['symbol'], mv_by)
                     c['symbol'] = new_sym
                     c['side'] = pos[sym]['side']
@@ -222,8 +232,6 @@ def post_orders(
     return {'buy orders': buy_pipe, 'sell orders': sell_pipe}
     # return  { 'oqty': oqty, 'do': do, 'tsym': tsym,
     #         'odir': odir, 'chk': chk }
-
-
 
 
 @app.get("/orderbook", response_class=HTMLResponse)
@@ -267,6 +275,7 @@ async def tradebook(request: Request):
            "data": df.to_html()}
     return tmp.TemplateResponse("table.html", ctx)
 
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await ws_cm.connect(websocket)
@@ -280,7 +289,7 @@ async def websocket_endpoint(websocket: WebSocket):
             interval = 0
             interval = await slp_til_next_sec()
             status = await do_orders(data['quotes'])
-            if status!= ords.status:
+            if status != ords.status:
                 print(f"Order {status}")
                 data['positions'] = await get_positions()
             ords.status = status
@@ -294,7 +303,7 @@ async def websocket_endpoint(websocket: WebSocket):
             if is_quotes:
                 await ws_cm.send_personal_message(json.dumps(data), websocket)
             else:
-                interval = sleep(5)
+                sleep(2)
                 print("invalid header sent to broker, sleeping")
 
         except WebSocketDisconnect:

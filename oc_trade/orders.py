@@ -16,12 +16,13 @@ class Orders:
         """
         try:
             order_id = self.kite.order_place(**order)
+            self.logging.info("Function called with kwargs: {}".format(order))
             if isinstance(order_id, str):
                 return order_id
             else:
                 self.logging.warning(f'no order id {order_id}')
         except Exception as e:
-            self.logging.warning(f'order place {e}')
+            self.logging.warning(f'{str(e)} while placing order')
 
     def get_orders(self):
         order_book = self.kite.orders
