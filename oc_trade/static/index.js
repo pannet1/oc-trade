@@ -188,7 +188,7 @@ const batch_orders = (action) => {
     tgtChip.innerText = action
     tgtChip.classList.add(action)
     tgtQty.value = document.getElementById('inp').value
-    chk.click()
+    // chk.click()
     tgtDir.value = action
   });
 }
