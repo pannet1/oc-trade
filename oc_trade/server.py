@@ -200,7 +200,7 @@ def post_orders(
                     o['symbol'] = pos[sym]['symbol']
                     if inp >= dct_build['abv_atm']:
                         return {"message": "the move requested is beyond the chain"}
-                    mv_by = int(inp) if do == 'up' else int(inp) * -1
+                    mv_by = int(inp) if do == 'dn' else int(inp) * -1
                     logging.info(f'mv_by {mv_by} ')
                     new_sym = upordn(pos[sym]['symbol'], mv_by)
                     c['symbol'] = new_sym
