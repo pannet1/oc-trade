@@ -82,14 +82,12 @@ async def get_positions():
     global POSITIONS
     data = POSITIONS
     pos = kite.positions
-    print(len(pos))
     for d in range(len(pos)):
         symbol = pos[d].get('symbol', "")
         prodt = pos[d].get('product', "NRML")
         if symbol.startswith(d_bld['base_name']) and prodt != "NRML":
             data[pos[d]['symbol']] = pos[d]
     POSITIONS = data
-    print(data)
     return data
 
 buy_pipe, sell_pipe, BUY_OPEN, SELL_OPEN = [], [], [], []
@@ -211,7 +209,7 @@ async def chain(request: Request):
 @app.post("/orders")
 def post_orders(
     oqty: Optional[List[str]] = Form(),
-    inp: str = Form(), do: str = Form(),
+    inp: int = Form(), do: str = Form(),
     tsym: List[str] = Form(),
     odir: Optional[List[str]] = Form(),
     chk: Optional[List[str]] = Form()
