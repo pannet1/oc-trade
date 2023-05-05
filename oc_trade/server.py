@@ -10,10 +10,10 @@ from toolkit.conman import ConnectionManager
 from datetime import datetime as dt
 from typing import List, Optional
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, Form
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from oc_builder import Oc_builder
+from builder import Builder
 from copy import deepcopy
 import inspect
 from time import sleep
@@ -21,12 +21,13 @@ from quotes import option_chain
 from orders import Orders, Status
 from chain import get_ltp_fm_chain
 from login_get_kite import get_kite
-import os
+from netools import load_ymls_from_github, load_dict_from_github
+from typing import Dict
+from pprint import pprint
 
 api = ""  # "" is zerodha, optional bypass
 # points to add/sub to ltp for limit orders
 buff = 2
-sym = 'NIFTY'
 
 WORK_PATH = "../../confid/"
 BUILD_PATH = WORK_PATH + "build/"
@@ -36,24 +37,19 @@ u = Utilities()
 f = Fileutils()
 kite = get_kite(api, WORK_PATH)
 ords = Orders(kite, logging, buff)
-
-
+"""
 try:
     # validate option build dict files
-    lst_build_files = f.get_files_with_extn('yaml', BUILD_PATH)
-    oc = Oc_builder(lst_build_files, BUILD_PATH)
-    oc.set_symbol_dict(sym)
-    dct_build = oc.dct_build
+    oc = Builder(d_bld)
+    # get ltp of the underlying to get the ATM
+    ulying = kite.ltp(d_bld['base_script'])
+    base_ltp = ulying[d_bld['base_script']]["last_price"]
+    # more settings for builder
+    atm = oc.get_atm_strike(base_ltp)
+    exchsym = oc.get_syms_fm_atm(atm)
 except Exception as e:
     logging.error(f'building {e}')
-
-# get ltp of the underlying to get the ATM
-ulying = kite.ltp(dct_build['base_script'])
-base_ltp = ulying[dct_build['base_script']]["last_price"]
-
-# more settings for builder
-atm = oc.get_atm_strike(base_ltp)
-exchsym = oc.get_syms_fm_atm(atm)
+"""
 
 
 def get_quotes(brkr=None):
@@ -61,14 +57,14 @@ def get_quotes(brkr=None):
         global kite
         kite = brkr
     try:
-        dctcopy = deepcopy(exchsym)
-        dctcopy.append(dct_build['base_script'])
+        dctcopy = deepcopy(d_bld['exchsym'])
+        dctcopy.append(d_bld['base_script'])
         resp = kite.ltp(dctcopy)
         row = {}
         if any(resp):
             global base_ltp
-            base_ltp = resp[dct_build['base_script']]["last_price"]
-            del resp[dct_build['base_script']]
+            base_ltp = resp[d_bld['base_script']]["last_price"]
+            del resp[d_bld['base_script']]
             row = option_chain(resp)
     except Exception as e:
         logging.info(f'get quotes {e}')
@@ -84,15 +80,16 @@ POSITIONS = {}
 
 async def get_positions():
     global POSITIONS
+    data = POSITIONS
     pos = kite.positions
-    data = {}
-    if any(pos):
-        for d in range(len(pos)):
-            symbol = pos[d].get('symbol', "")
-            prodt = pos[d].get('product', "NRML")
-            if symbol.startswith(sym) and prodt != "NRML":
-                data[pos[d]['symbol']] = pos[d]
+    print(len(pos))
+    for d in range(len(pos)):
+        symbol = pos[d].get('symbol', "")
+        prodt = pos[d].get('product', "NRML")
+        if symbol.startswith(d_bld['base_name']) and prodt != "NRML":
+            data[pos[d]['symbol']] = pos[d]
     POSITIONS = data
+    print(data)
     return data
 
 buy_pipe, sell_pipe, BUY_OPEN, SELL_OPEN = [], [], [], []
@@ -157,14 +154,58 @@ ws_cm = ConnectionManager()
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 tmp = Jinja2Templates(directory='templates')
+d_bld: Dict[str, Dict] = {}
+
+client_data = {}
 
 
+# API endpoint to render the list of YAML files in a Jinja2 HTML template
 @app.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    files = [os.path.splitext(f)[0] for f in os.listdir(BUILD_PATH)]
-    ctx = {"request": request, "title": inspect.stack()[0][3],
-           "files": files}
-    return tmp.TemplateResponse("index.html", ctx)
+async def index(request: Request):
+    # Get the client's YAML folder from the request
+    # folder = request.headers.get("X-Yaml-Folder")
+    folder = "oc-trade"
+    if folder is not None:
+        data = load_ymls_from_github("netools", folder)
+        if data is not None:
+            # Render the HTML template with the YAML data
+            return tmp.TemplateResponse("index.html", {"request": request, "data": data})
+        else:
+            return {"error": "Failed to load YAML data"}
+    else:
+        return {"error": "YAML folder not specified in request headers"}
+
+
+@app.post("/select_yaml")
+async def select_yaml(request: Request):
+    form = await request.form()
+    yaml_file = form.get("yaml_file")
+    if yaml_file is not None:
+        global d_bld
+        data = load_dict_from_github("netools", "oc-trade", yaml_file)
+        if data is not None:
+            d_bld = data
+            bldr = Builder(d_bld)
+            # get ltp of the underlying to get the ATM
+            ulying = kite.ltp(d_bld['base_script'])
+            base_ltp = ulying[d_bld['base_script']]["last_price"]
+            # more settings for builder
+            atm = bldr.get_atm_strike(base_ltp)
+            d_bld['exchsym'] = bldr.get_syms_fm_atm(atm)
+            d_bld["oc"] = bldr
+            # Redirect to the YAML data route for the client
+            redirect_url = request.url_for("chain")
+            return RedirectResponse(redirect_url, status_code=302)
+        else:
+            return {"error": "Failed to load YAML data"}
+    else:
+        return {"error": "YAML file not specified in form data"}
+
+
+@app.get("/chain", response_class=HTMLResponse)
+async def chain(request: Request):
+    ctx = {"request": request, "title": inspect.stack()[0][3]}
+    return tmp.TemplateResponse("chain.html", ctx)
 
 
 @app.post("/orders")
@@ -175,12 +216,14 @@ def post_orders(
     odir: Optional[List[str]] = Form(),
     chk: Optional[List[str]] = Form()
 ):
+    sym = d_bld["base_script"]
+
     def upordn(old_sym: str, mv_by: int):
         if old_sym.endswith('CE'):
             old_strk = re.search(r"(\d{5})+?CE?", old_sym).group(0)[:-2]
         elif old_sym.endswith('PE'):
             old_strk = re.search(r"(\d{5})+?PE?", old_sym).group(0)[:-2]
-        new_strk = int(old_strk) + (mv_by * dct_build['addsub'])
+        new_strk = int(old_strk) + (mv_by * d_bld['addsub'])
         new_sym = old_sym.replace(old_strk, str(new_strk))
         return new_sym
 
@@ -198,7 +241,7 @@ def post_orders(
                     o['quantity'] = abs(pos[sym]['quantity'])
                     c = deepcopy(o)
                     o['symbol'] = pos[sym]['symbol']
-                    if inp >= dct_build['abv_atm']:
+                    if inp >= d_bld['abv_atm']:
                         return {"message": "the move requested is beyond the chain"}
                     mv_by = int(inp) if do == 'dn' else int(inp) * -1
                     logging.info(f'mv_by {mv_by} ')
@@ -218,7 +261,7 @@ def post_orders(
         for k, quantity in enumerate(oqty):
             if quantity != "":
                 o = {}
-                o['exchange'] = dct_build['opt_exch']
+                o['exchange'] = d_bld['opt_exch']
                 o['side'] = odir[k]
                 o['order_type'] = 'LIMIT'
                 o['product'] = 'MIS'
@@ -279,7 +322,6 @@ async def tradebook(request: Request):
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await ws_cm.connect(websocket)
-    global POSITIONS
     data = {}
     data['positions'] = await get_positions()
     while True:
@@ -291,13 +333,13 @@ async def websocket_endpoint(websocket: WebSocket):
             status = await do_orders(data['quotes'])
             if status != ords.status:
                 print(f"Order {status}")
-                data['positions'] = await get_positions()
+            data['positions'] = await get_positions()
             ords.status = status
-            atm = oc.get_atm_strike(base_ltp)
+            atm = d_bld["oc"].get_atm_strike(base_ltp)
             data['time'] = {'slept': interval,
-                            'tsym': dct_build['base_script'],
+                            'tsym': d_bld['base_script'],
                             'atm': atm,
-                            'lot': dct_build['opt_lot'],
+                            'lot': d_bld['opt_lot'],
                             'ltp': base_ltp}
             is_quotes = data.get('quotes', 0)
             if is_quotes:

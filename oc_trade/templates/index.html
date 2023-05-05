@@ -1,81 +1,15 @@
 {% extends "base.html" %}
-{%  block form  %}
-        <form name='orderForm' target='_blank' method='post' action='/orders/' id="frm" autocomplete="off">
-        <table> 
-            <thead>
-                <tr>
-                   <th colspan='2' scope="column">
-                    <button class="pushable" type="button" onclick='batch_orders(this.innerText)'>
-                      <span class="shadow"></span>
-                      <span class="edge edge-green"></span>
-                      <span class="front front-green">
-                        BUY
-                      </span>
-                    </button>
-                    </th>
-                    <th colspan='2' style='text-align:center' scope="column">
-                        <button value="up" onclick="setTimeout('clearBuySell()', 5000)" name='do'>UP</button>
-                    </th>
-                    <th id='cqty' scope="column">
-                        Qty
-                    </th>
-                     <th id='cpnl' scope="column">
-                        P&L
-                    </th>
-                   <th scope="column">
-                        <input style='width:7rem' 
-                                class='center' 
-                                id="inp" name="inp" 
-                                type="number" value=1 min=1>
-                        <span style='display:inline-block'>
-                        <button onclick="setTimeout('clearBuySell()', 5000)"
-                                style='margin:0' 
-                                value='send' name='do'>+
-                        </button>
-                        </span>
-                    </th>
-                    <th id='qpnl' scope="column">
-                        P&L
-                    </th>
-                     <th id='pqty' scope="column">
-                        Qty
-                    </th>
-                   <th colspan='2' style='text-align:center' scope="column">
-                        <button value='dn' onclick="setTimeout('clearBuySell()', 5000)"
-                                name='do'>dn</button>
-                    </th>
-                    <th colspan='2' scope="column">
-                      <button class="pushable" type="button" onclick='batch_orders(this.innerText)'> 
-                      <span class="shadow"></span>
-                        <span class="edge edge-red"></span>
-                        <span class="front front-red">
-                          SELL
-                        </span>
-                    </button>
-                    </th>
-                </tr>
-            </thead>
-            <tbody id="messages">                            
-            </tbody>
-            <tfoot>
-                <tr>
-                  <td id="tsym" colspan='2'></td>
-                  <td colspan='2'></td>
-                  <td id='ttlcallpnl' class='right' colspan='2'>&nbsp;</td>
-                  <td id='ttlpnl' class='center'></td>
-                  <td id='ttlputpnl' colspan='2'>&nbsp;</td>
-                  <td colspan='2'></td>
-                  <td id="ltp" colspan='2' class='center'>time</td>
-                </tr>
-            </tfoot>
-        </table>
-        </form>
-        <form>
-          <select>
-            {% for file in files %}
-            <option value="{{ file}}">{{ file }}</option>
-            {% endfor %}
-          </select>
-        </form>
-{% endblock form  %}
-
+{% block form %}
+<form method="POST" class="uk-form-stacked" action="/select_yaml">
+    <div class="uk-margin">
+        <label class="uk-form-label" for="form-stacked-select">Select</label>
+        <div class="uk-form-controls">
+            <select name="yaml_file" class="uk-select" id="form-stacked-select">
+              {% for item in data %}
+                <option value="{{ item }}">{{ item }}</option>
+              {% endfor %}
+            </select>
+        </div>
+    </div>
+    <button type="submit">Submit</button>
+{% endblock form %}

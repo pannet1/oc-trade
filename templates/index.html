@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Interactive Payoff Chart</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plotly.js-dist@1.58.4@plotly.js-dist.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist@1.58.4@plotly.js-dist.min.js"></script>
+  </head>
+  <body>
+    <div id="chart"></div>
+
+    <script type="text/javascript">
+      var chartData = {{ chart_data|tojson }};
+
+      Plotly.newPlot('chart', chartData, {}, {responsive: true});
+    </script>
+  </body>
+</html>
+

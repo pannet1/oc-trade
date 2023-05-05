@@ -12,3 +12,5 @@ selenium
 webdriver_manager
 pyotp
 jinja2
+scipy
+opstrat
