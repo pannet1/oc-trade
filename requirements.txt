@@ -1,4 +1,3 @@
-wheel
 pandas
 git+https://github.com/pannet1/omspy-brokers.git
 git+https://github.com/pannet1/omspy.git
@@ -14,3 +13,4 @@ pyotp
 jinja2
 scipy
 opstrat
+pendulum

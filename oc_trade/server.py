@@ -29,7 +29,7 @@ api = ""  # "" is zerodha, optional bypass
 # points to add/sub to ltp for limit orders
 buff = 2
 
-WORK_PATH = "../../confid/"
+WORK_PATH = "../../../"
 BUILD_PATH = WORK_PATH + "build/"
 logging = Logger(20, WORK_PATH + 'oc-trade.log')
 # toolkit modules
