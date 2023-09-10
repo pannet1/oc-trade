@@ -23,7 +23,6 @@ from chain import get_ltp_fm_chain
 from login_get_kite import get_kite
 from netools import load_ymls_from_github, load_dict_from_github
 from typing import Dict
-from pprint import pprint
 
 api = ""  # "" is zerodha, optional bypass
 # points to add/sub to ltp for limit orders

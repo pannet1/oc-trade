@@ -1,12 +1,13 @@
 from toolkit.fileutils import Fileutils
 from omspy_brokers.bypass import Bypass
-from omspy.brokers.zerodha import Zerodha
-
+# from omspy.brokers.zerodha import Zerodha
+from zerodha import Zerodha
+import traceback
 
 f = Fileutils()
 
 
-def get_kite(api="", sec_dir="../../confid/"):
+def get_kite(api="", sec_dir="../../../"):
     kite = False
     if api == "bypass":
         print("trying login BYPASS ..")
@@ -43,6 +44,7 @@ def _get_bypass(sec_dir):
                     tw.write(enctoken)
     except Exception as e:
         print(f"unable to create bypass object {e}")
+        traceback.print_exc()
     else:
         return bypass
 
@@ -60,13 +62,11 @@ def _get_zerodha(sec_dir):
                        secret=fdct['secret'],
                        tokpath=sec_dir + fdct['userid'] + '.txt'
                        )
-        zera.authenticate()
+        return zera
     except Exception as e:
         print(f"exception while creating zerodha object {e}")
-    finally:
-        return zera
 
 
 if __name__ == "__main__":
     kobj = get_kite()
-    print(kobj.profile)
+    print(kobj.profile())
