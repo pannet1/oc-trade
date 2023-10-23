@@ -36,19 +36,6 @@ u = Utilities()
 f = Fileutils()
 kite = get_kite(api, WORK_PATH)
 ords = Orders(kite, logging, buff)
-"""
-try:
-    # validate option build dict files
-    oc = Builder(d_bld)
-    # get ltp of the underlying to get the ATM
-    ulying = kite.ltp(d_bld['base_script'])
-    base_ltp = ulying[d_bld['base_script']]["last_price"]
-    # more settings for builder
-    atm = oc.get_atm_strike(base_ltp)
-    exchsym = oc.get_syms_fm_atm(atm)
-except Exception as e:
-    logging.error(f'building {e}')
-"""
 
 
 def get_quotes(brkr=None):

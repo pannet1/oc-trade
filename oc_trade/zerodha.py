@@ -1,10 +1,9 @@
-from toolkit.logger import Logger
 import requests
 import pyotp
 from kiteconnect import KiteConnect
 import sys
+import logging
 
-logging = Logger(10)
 LOGINURL = "https://kite.zerodha.com/api/login"
 TWOFAURL = "https://kite.zerodha.com/api/twofa"
 
